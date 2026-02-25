@@ -1,0 +1,5 @@
+{
+  "name": "AI Website Builder",
+  "description": "A professional website generator that creates tailored business sites using React, Tailwind CSS, and shadcn/ui components.",
+  "requestFramePermissions": []
+}
