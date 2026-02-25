@@ -1,6 +1,23 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useMemo } from 'react';
 import { BusinessData, WizardStep, BusinessType, ServiceItem, BusinessFeatures, DesignStyle } from '../types/builder';
 import { businessTemplates } from '../lib/templates';
+
+// Shape that components expect when reading business data
+interface BusinessDataView {
+  name: string;
+  ownerName?: string;
+  city: string;
+  state: string;
+  phone?: string;
+  email?: string;
+  tagline?: string;
+  brandColor: string;
+  designStyle: DesignStyle;
+  businessType: BusinessType;
+  customType?: string;
+  services: ServiceItem[];
+  features: BusinessFeatures;
+}
 
 interface BuilderState {
   step: WizardStep;
@@ -42,6 +59,8 @@ const initialState: BuilderState = {
 const BuilderContext = createContext<{
   state: BuilderState;
   dispatch: React.Dispatch<BuilderAction>;
+  businessData: BusinessDataView | null;
+  setBusinessData: (updates: Partial<BusinessData>) => void;
 } | null>(null);
 
 function builderReducer(state: BuilderState, action: BuilderAction): BuilderState {
@@ -95,8 +114,32 @@ export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ child
     document.documentElement.style.setProperty('--brand-color', state.data.brandColor);
   }, [state]);
 
+  // Derive businessData view that components expect (with .name instead of .businessName)
+  const businessData = useMemo<BusinessDataView | null>(() => {
+    if (!state.data.businessName?.trim()) return null;
+    return {
+      name: state.data.businessName,
+      ownerName: state.data.ownerName,
+      city: state.data.city,
+      state: state.data.state,
+      phone: state.data.phone,
+      email: state.data.email,
+      tagline: state.data.tagline,
+      brandColor: state.data.brandColor,
+      designStyle: state.data.designStyle,
+      businessType: state.data.businessType,
+      customType: state.data.customType,
+      services: state.data.services,
+      features: state.data.features,
+    };
+  }, [state.data]);
+
+  const setBusinessData = (updates: Partial<BusinessData>) => {
+    dispatch({ type: 'UPDATE_BUSINESS_INFO', payload: updates });
+  };
+
   return (
-    <BuilderContext.Provider value={{ state, dispatch }}>
+    <BuilderContext.Provider value={{ state, dispatch, businessData, setBusinessData }}>
       {children}
     </BuilderContext.Provider>
   );
