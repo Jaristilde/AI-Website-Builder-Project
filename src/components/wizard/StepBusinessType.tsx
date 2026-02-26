@@ -207,24 +207,33 @@ const StepBusinessType: React.FC<StepBusinessTypeProps> = ({ autoShowImport = fa
 
       {/* Import from Website Card */}
       <motion.div
-        whileHover={!showImport ? { y: -2, scale: 1.005 } : undefined}
-        whileTap={!showImport ? { scale: 0.99 } : undefined}
+        whileHover={!showImport ? { y: -4, scale: 1.01 } : undefined}
+        whileTap={!showImport ? { scale: 0.98 } : undefined}
       >
         <div
           onClick={!showImport && !loading ? handleImportClick : undefined}
           className={`
-            w-full rounded-2xl border-2 border-dashed p-6 text-center transition-all
+            w-full rounded-3xl border-2 transition-all
             ${showImport
-              ? 'border-[var(--brand-color)] bg-purple-50/50'
-              : 'border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-md cursor-pointer'
+              ? 'border-[var(--brand-color)] bg-purple-50/50 p-8'
+              : 'border-[var(--brand-color)]/30 bg-gradient-to-br from-purple-50 via-white to-purple-50/50 hover:border-[var(--brand-color)] hover:shadow-xl hover:shadow-purple-100/50 cursor-pointer p-8'
             }
           `}
         >
           {!showImport && (
-            <div className="flex items-center justify-center gap-3">
-              <Globe className="w-6 h-6 text-[var(--brand-color)]" />
-              <span className="font-bold text-zinc-900">Import from Website</span>
-              <span className="text-sm text-zinc-400">— have an existing site? We'll grab your info</span>
+            <div className="flex flex-col items-center gap-4 py-4">
+              <div className="w-16 h-16 bg-[var(--brand-color)]/10 rounded-2xl flex items-center justify-center">
+                <Globe className="w-8 h-8 text-[var(--brand-color)]" />
+              </div>
+              <div className="text-center space-y-2">
+                <span className="text-xl font-black text-zinc-900 block">Already Have a Website?</span>
+                <span className="text-base text-zinc-500 block max-w-md mx-auto">
+                  Paste your URL and we'll automatically import your business info, services, and style
+                </span>
+              </div>
+              <div className="mt-2 px-6 py-2.5 bg-[var(--brand-color)]/10 text-[var(--brand-color)] font-bold text-sm rounded-full">
+                Import from Website →
+              </div>
             </div>
           )}
 
