@@ -24,6 +24,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ activeTab, o
     { id: 'leads', label: 'Leads', icon: Users },
     { id: 'appointments', label: 'Appointments', icon: Calendar },
     { id: 'clients', label: 'Clients', icon: UserCircle },
+    { id: 'publish', label: 'Publish', icon: Globe },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 

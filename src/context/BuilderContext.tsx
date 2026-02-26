@@ -32,6 +32,7 @@ type BuilderAction =
   | { type: 'UPDATE_BUSINESS_INFO'; payload: Partial<BusinessData> }
   | { type: 'UPDATE_DESIGN'; payload: { style: DesignStyle; color: string } }
   | { type: 'IMPORT_FROM_URL'; payload: Partial<BusinessData> }
+  | { type: 'LOAD_PUBLISHED_SITE'; payload: BusinessData }
   | { type: 'RESET' };
 
 const initialState: BuilderState = {
@@ -117,6 +118,12 @@ function builderReducer(state: BuilderState, action: BuilderAction): BuilderStat
         },
       };
     }
+    case 'LOAD_PUBLISHED_SITE':
+      return {
+        ...state,
+        step: 6 as WizardStep,
+        data: action.payload,
+      };
     case 'RESET':
       return initialState;
     default:
@@ -124,17 +131,20 @@ function builderReducer(state: BuilderState, action: BuilderAction): BuilderStat
   }
 }
 
-export const BuilderProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const BuilderProvider: React.FC<{ children: React.ReactNode; readOnly?: boolean }> = ({ children, readOnly = false }) => {
   const [state, dispatch] = useReducer(builderReducer, initialState, (initial) => {
+    if (readOnly) return initial;
     const saved = localStorage.getItem('builder_state');
     return saved ? JSON.parse(saved) : initial;
   });
 
   useEffect(() => {
-    localStorage.setItem('builder_state', JSON.stringify(state));
+    if (!readOnly) {
+      localStorage.setItem('builder_state', JSON.stringify(state));
+    }
     // Update brand color CSS variable
     document.documentElement.style.setProperty('--brand-color', state.data.brandColor);
-  }, [state]);
+  }, [state, readOnly]);
 
   // Derive businessData view that components expect (with .name instead of .businessName)
   const businessData = useMemo<BusinessDataView | null>(() => {

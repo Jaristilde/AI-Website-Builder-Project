@@ -1,0 +1,57 @@
+import type { Context } from '@netlify/functions';
+import { initializeApp, cert, getApps } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
+import { getCorsHeaders, handleCorsPreflight } from './_shared/cors';
+
+// Initialize Firebase Admin (singleton)
+if (getApps().length === 0) {
+  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY || '{}');
+  initializeApp({ credential: cert(serviceAccount) });
+}
+
+const db = getFirestore();
+const SITES_COLLECTION = 'published_sites';
+
+export default async function handler(req: Request, _context: Context): Promise<Response> {
+  const origin = req.headers.get('origin');
+  const corsHeaders = getCorsHeaders(origin);
+
+  const preflight = handleCorsPreflight(req);
+  if (preflight) return preflight;
+
+  if (req.method !== 'GET') {
+    return Response.json(
+      { available: false, error: 'Method not allowed' },
+      { status: 405, headers: corsHeaders }
+    );
+  }
+
+  const url = new URL(req.url);
+  const slug = url.searchParams.get('slug');
+
+  if (!slug || typeof slug !== 'string' || slug.trim().length === 0) {
+    return Response.json(
+      { available: false, error: 'Slug parameter is required' },
+      { status: 400, headers: corsHeaders }
+    );
+  }
+
+  try {
+    const snapshot = await db
+      .collection(SITES_COLLECTION)
+      .where('slug', '==', slug.toLowerCase())
+      .limit(1)
+      .get();
+
+    return Response.json(
+      { available: snapshot.empty, slug: slug.toLowerCase() },
+      { status: 200, headers: corsHeaders }
+    );
+  } catch (error) {
+    console.error('Slug check error:', error);
+    return Response.json(
+      { available: false, error: 'An error occurred. Please try again.' },
+      { status: 500, headers: corsHeaders }
+    );
+  }
+}

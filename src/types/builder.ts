@@ -84,3 +84,12 @@ export interface AIExtractionResult {
   confidence?: number;
   message?: string;
 }
+
+// --- Published Site types ---
+
+export interface PublishState {
+  isPublished: boolean;
+  slug: string | null;
+  publishToken: string | null;
+  url: string | null;
+}

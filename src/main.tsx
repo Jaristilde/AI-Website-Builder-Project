@@ -3,15 +3,24 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { BuilderProvider } from './context/BuilderContext';
 import { GoogleProvider } from './context/GoogleContext';
+import { detectSubdomain } from './lib/subdomain';
 import App from './App.tsx';
+import PublishedSitePage from './pages/PublishedSitePage';
 import './index.css';
+
+const subdomainInfo = detectSubdomain();
+const isPublishedSite = subdomainInfo.isSubdomain && !!subdomainInfo.slug;
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <BuilderProvider>
+      <BuilderProvider readOnly={isPublishedSite}>
         <GoogleProvider>
-          <App />
+          {isPublishedSite ? (
+            <PublishedSitePage slug={subdomainInfo.slug!} />
+          ) : (
+            <App />
+          )}
         </GoogleProvider>
       </BuilderProvider>
     </BrowserRouter>

@@ -1,4 +1,3 @@
-import { GoogleGenAI } from '@google/genai';
 import {
   BusinessData,
   BusinessType,
@@ -17,49 +16,6 @@ const VALID_DESIGN_STYLES: DesignStyle[] = [
 ];
 
 const id = () => Math.random().toString(36).slice(2, 9);
-
-function buildExtractionPrompt(
-  markdown: string,
-  metadata?: { title?: string; description?: string }
-): string {
-  const metaContext = metadata
-    ? `\nPage title: ${metadata.title || 'N/A'}\nPage description: ${metadata.description || 'N/A'}\n`
-    : '';
-
-  return `You are a business data extraction assistant. Analyze the following website content and extract structured business information.
-${metaContext}
-Website content:
----
-${markdown.slice(0, 12000)}
----
-
-Extract the following fields and return ONLY a valid JSON object (no markdown fences, no explanation):
-
-{
-  "businessType": one of [${VALID_BUSINESS_TYPES.map(t => `"${t}"`).join(', ')}],
-  "businessName": "the business name",
-  "services": [
-    { "name": "service name", "price": "$XX or null", "description": "brief description", "category": "category or null" }
-  ],
-  "phone": "phone number or null",
-  "email": "email address or null",
-  "city": "city or null",
-  "state": "US state abbreviation or null",
-  "tagline": "a short tagline or slogan extracted or generated from the content",
-  "designStyle": one of [${VALID_DESIGN_STYLES.map(s => `"${s}"`).join(', ')}] - pick the style that best matches the business vibe,
-  "brandColor": "a hex color code that fits the business branding (e.g. #7C3AED)",
-  "confidence": a number from 0 to 1 indicating how confident you are in the overall extraction
-}
-
-Rules:
-- For businessType, pick the closest match. Use "other" only if nothing else fits.
-- Extract up to 10 services maximum. Each service MUST have at least a "name" field.
-- For phone/email/city/state, extract only if clearly present on the page. Use null otherwise.
-- For tagline, prefer text explicitly on the page. If none exists, create a short one from context.
-- For designStyle, infer from the business type and tone of the content.
-- For brandColor, extract from any color mentions or infer a suitable brand color.
-- Return ONLY the JSON object. No other text.`;
-}
 
 function normalizeExtraction(raw: Record<string, unknown>): Partial<BusinessData> {
   const result: Partial<BusinessData> = {};
@@ -116,38 +72,36 @@ function normalizeExtraction(raw: Record<string, unknown>): Partial<BusinessData
 }
 
 /**
- * Extract structured business data from scraped markdown using Google Gemini.
+ * Extract structured business data from scraped markdown using the
+ * server-side Gemini extraction function (API key is never exposed to the browser).
  */
 export async function extractBusinessData(
   markdown: string,
   metadata?: { title?: string; description?: string }
 ): Promise<AIExtractionResult> {
   try {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      return { success: false, message: 'Gemini API key is not configured.' };
-    }
-
-    const ai = new GoogleGenAI({ apiKey });
-    const prompt = buildExtractionPrompt(markdown, metadata);
-
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
+    const response = await fetch('/.netlify/functions/gemini-extract', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ markdownContent: markdown, metadata }),
     });
 
-    const text = response.text?.trim();
-    if (!text) {
-      return { success: false, message: 'Gemini returned an empty response.' };
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      const message = errorData?.error || `Extraction failed with status ${response.status}`;
+      return { success: false, message };
     }
 
-    // Strip markdown fences if the model adds them despite instructions
-    const cleaned = text.replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
+    const result = await response.json();
+
+    if (!result.success || !result.rawJson) {
+      return { success: false, message: result.error || 'AI returned an invalid response.' };
+    }
+
     let parsed: Record<string, unknown>;
     try {
-      parsed = JSON.parse(cleaned);
+      parsed = JSON.parse(result.rawJson);
     } catch {
-      console.error('Failed to parse Gemini response as JSON:', text);
       return { success: false, message: 'AI returned an invalid response format.' };
     }
 

@@ -41,4 +41,4 @@ export interface Client {
   lastVisit: string;
 }
 
-export type DashboardTab = 'overview' | 'leads' | 'appointments' | 'clients' | 'settings';
+export type DashboardTab = 'overview' | 'leads' | 'appointments' | 'clients' | 'publish' | 'settings';

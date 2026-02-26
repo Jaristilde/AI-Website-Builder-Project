@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useBuilder } from '../context/BuilderContext';
 import { Button } from '../components/ui/button';
-import { 
-  Monitor, 
-  Tablet, 
-  Smartphone, 
-  ArrowLeft, 
+import {
+  Monitor,
+  Tablet,
+  Smartphone,
+  ArrowLeft,
   LayoutDashboard,
   ExternalLink,
-  Edit3
+  Edit3,
+  Rocket,
+  Globe,
 } from 'lucide-react';
+import { PublishState } from '../types/builder';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { motion } from 'motion/react';
@@ -100,10 +103,30 @@ const PreviewPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" className="gap-2">
-            <ExternalLink className="w-4 h-4" /> View Live
+          {(() => {
+            try {
+              const saved = localStorage.getItem('publish_state');
+              const ps: PublishState | null = saved ? JSON.parse(saved) : null;
+              if (ps?.isPublished && ps.url) {
+                return (
+                  <a href={ps.url} target="_blank" rel="noopener noreferrer">
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <Globe className="w-4 h-4" /> View Live
+                    </Button>
+                  </a>
+                );
+              }
+            } catch {}
+            return null;
+          })()}
+          <Button
+            size="sm"
+            onClick={() => navigate('/dashboard?tab=publish')}
+            className="gap-2 bg-emerald-600 hover:bg-emerald-700"
+          >
+            <Rocket className="w-4 h-4" /> Publish
           </Button>
-          <Button size="sm" onClick={() => navigate('/dashboard')} className="gap-2">
+          <Button size="sm" variant="outline" onClick={() => navigate('/dashboard')} className="gap-2">
             <LayoutDashboard className="w-4 h-4" /> Dashboard
           </Button>
         </div>

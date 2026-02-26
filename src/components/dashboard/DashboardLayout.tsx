@@ -5,14 +5,20 @@ import { useBuilder } from '../../context/BuilderContext';
 import { useGoogle } from '../../context/GoogleContext';
 import { ConnectionStatus } from './ConnectionStatus';
 import { Globe, ExternalLink } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+
+const VALID_TABS: DashboardTab[] = ['overview', 'leads', 'appointments', 'clients', 'publish', 'settings'];
 
 interface DashboardLayoutProps {
   children: (activeTab: DashboardTab, onTabChange: (tab: DashboardTab) => void) => React.ReactNode;
 }
 
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
-  const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
+  const [searchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab') as DashboardTab | null;
+  const [activeTab, setActiveTab] = useState<DashboardTab>(
+    initialTab && VALID_TABS.includes(initialTab) ? initialTab : 'overview'
+  );
   const { businessData } = useBuilder();
 
   return (

@@ -5,3 +5,10 @@
   framework = "#custom"
   command = "npm run dev"
   targetPort = 3000
+
+# SPA fallback: serve index.html for all routes
+# Critical for /site/:slug path-based routing and future subdomain support
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

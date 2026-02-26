@@ -1,5 +1,6 @@
 import type { Context } from '@netlify/functions';
 import FirecrawlApp from '@mendable/firecrawl-js';
+import { getCorsHeaders, handleCorsPreflight } from './_shared/cors';
 
 interface ScrapeRequestBody {
   url: string;
@@ -17,23 +18,6 @@ interface ScrapeResponseBody {
   error?: string;
 }
 
-const ALLOWED_ORIGINS = [
-  'http://localhost:3000',
-  'http://localhost:8888',
-];
-
-function getCorsHeaders(origin: string | null): Record<string, string> {
-  const allowedOrigin =
-    origin && (ALLOWED_ORIGINS.includes(origin) || origin.endsWith('.netlify.app'))
-      ? origin
-      : '';
-  return {
-    'Access-Control-Allow-Origin': allowedOrigin,
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  };
-}
-
 function isValidUrl(input: string): boolean {
   try {
     const url = new URL(input);
@@ -47,9 +31,8 @@ export default async function handler(req: Request, _context: Context): Promise<
   const origin = req.headers.get('origin');
   const corsHeaders = getCorsHeaders(origin);
 
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: corsHeaders });
-  }
+  const preflight = handleCorsPreflight(req);
+  if (preflight) return preflight;
 
   if (req.method !== 'POST') {
     return Response.json(
