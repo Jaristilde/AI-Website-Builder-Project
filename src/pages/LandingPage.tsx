@@ -78,11 +78,21 @@ const LandingPage: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <Link to="/builder">
-                <Button size="lg" className="h-16 px-10 text-xl rounded-2xl shadow-xl shadow-purple-200">
-                  Build My Website <ArrowRight className="ml-2 w-6 h-6" />
-                </Button>
-              </Link>
+              <div className="space-y-4">
+                <Link to="/builder">
+                  <Button size="lg" className="h-16 px-10 text-xl rounded-2xl shadow-xl shadow-purple-200">
+                    Build My Website <ArrowRight className="ml-2 w-6 h-6" />
+                  </Button>
+                </Link>
+                <div className="flex flex-col items-center gap-2">
+                  <Link to="/builder?mode=import">
+                    <Button variant="outline" size="lg" className="rounded-2xl">
+                      Import from Existing Website <Globe className="ml-2 w-5 h-5" />
+                    </Button>
+                  </Link>
+                  <p className="text-sm text-zinc-400">Have an existing website? We'll extract your info automatically.</p>
+                </div>
+              </div>
             )}
           </motion.div>
 

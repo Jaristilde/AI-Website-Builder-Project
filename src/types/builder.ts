@@ -63,3 +63,24 @@ export interface BusinessTemplate {
   ctaText: string;
   suggestedStyles: DesignStyle[];
 }
+
+// --- Scrape + AI Extraction types (Phase 1 + 2) ---
+
+export interface ScrapeResult {
+  success: boolean;
+  markdown?: string;
+  metadata?: {
+    title?: string;
+    description?: string;
+    sourceUrl?: string;
+    [key: string]: unknown;
+  };
+  error?: string;
+}
+
+export interface AIExtractionResult {
+  success: boolean;
+  data?: Partial<BusinessData>;
+  confidence?: number;
+  message?: string;
+}

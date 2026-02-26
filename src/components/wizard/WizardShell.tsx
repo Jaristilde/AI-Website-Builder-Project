@@ -21,7 +21,11 @@ const stepTitles: Record<number, string> = {
   6: "Review & build!",
 };
 
-const WizardShell: React.FC = () => {
+interface WizardShellProps {
+  autoShowImport?: boolean;
+}
+
+const WizardShell: React.FC<WizardShellProps> = ({ autoShowImport = false }) => {
   const { state, dispatch } = useBuilder();
   const { step } = state;
   const [direction, setDirection] = useState(1); // 1 for forward, -1 for back
@@ -58,7 +62,7 @@ const WizardShell: React.FC = () => {
 
   const renderStep = () => {
     switch (step) {
-      case 1: return <StepBusinessType />;
+      case 1: return <StepBusinessType autoShowImport={autoShowImport} />;
       case 2: return <StepServices />;
       case 3: return <StepFeatures />;
       case 4: return <StepBusinessInfo />;

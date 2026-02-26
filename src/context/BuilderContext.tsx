@@ -31,6 +31,7 @@ type BuilderAction =
   | { type: 'UPDATE_FEATURES'; payload: BusinessFeatures }
   | { type: 'UPDATE_BUSINESS_INFO'; payload: Partial<BusinessData> }
   | { type: 'UPDATE_DESIGN'; payload: { style: DesignStyle; color: string } }
+  | { type: 'IMPORT_FROM_URL'; payload: Partial<BusinessData> }
   | { type: 'RESET' };
 
 const initialState: BuilderState = {
@@ -95,6 +96,27 @@ function builderReducer(state: BuilderState, action: BuilderAction): BuilderStat
           brandColor: action.payload.color,
         },
       };
+    case 'IMPORT_FROM_URL': {
+      const imported = action.payload;
+      const template = imported.businessType ? businessTemplates[imported.businessType] : null;
+      return {
+        ...state,
+        data: {
+          ...state.data,
+          ...(imported.businessType !== undefined && { businessType: imported.businessType }),
+          ...(imported.businessName !== undefined && { businessName: imported.businessName }),
+          ...(imported.services && imported.services.length > 0 && { services: imported.services }),
+          ...(template && { features: template.defaultFeatures }),
+          ...(imported.phone !== undefined && { phone: imported.phone }),
+          ...(imported.email !== undefined && { email: imported.email }),
+          ...(imported.city !== undefined && { city: imported.city }),
+          ...(imported.state !== undefined && { state: imported.state }),
+          ...(imported.tagline !== undefined && { tagline: imported.tagline }),
+          ...(imported.designStyle !== undefined && { designStyle: imported.designStyle }),
+          ...(imported.brandColor !== undefined && { brandColor: imported.brandColor }),
+        },
+      };
+    }
     case 'RESET':
       return initialState;
     default:
