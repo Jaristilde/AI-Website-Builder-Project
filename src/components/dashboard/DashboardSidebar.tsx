@@ -32,11 +32,8 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ activeTab, o
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex flex-col w-64 bg-white border-r border-zinc-100 h-screen sticky top-0">
         <div className="p-8">
-          <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 bg-purple-600 rounded-xl flex items-center justify-center text-white font-black text-xl group-hover:scale-110 transition-transform">
-              B
-            </div>
-            <span className="font-black text-xl tracking-tight text-zinc-900">Builder</span>
+          <Link to="/" className="flex items-center group">
+            <img src="/my1stwebsite_logo_purple.png" alt="My1stWebsite" className="h-12 group-hover:scale-105 transition-transform" />
           </Link>
         </div>
 

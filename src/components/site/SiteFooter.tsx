@@ -60,7 +60,7 @@ const SiteFooter: React.FC = () => {
 
         <div className="pt-12 border-t border-zinc-800 flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-zinc-500">
           <p>© 2026 {state.data.businessName || 'Your Business'}. All rights reserved.</p>
-          <p>Powered by AI Website Builder</p>
+          <p>Powered by my1stwebsite</p>
         </div>
       </div>
     </footer>
