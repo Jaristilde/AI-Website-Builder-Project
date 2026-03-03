@@ -18,10 +18,10 @@ export const Header: React.FC = () => {
 
   return (
     <header className="bg-white border-b border-zinc-100 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-6 h-24 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center group transition-opacity hover:opacity-80">
-          <img src="/my1stwebsite_logo_purple.png" alt="My1stWebsite" className="h-16 group-hover:scale-105 transition-transform" />
+          <img src="/my1stwebsite_logo_purple.png" alt="My1stWebsite" className="h-24 group-hover:scale-105 transition-transform" />
         </Link>
 
         {/* Desktop Nav */}

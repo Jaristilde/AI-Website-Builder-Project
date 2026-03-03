@@ -21,6 +21,8 @@ import {
   Zap,
   TrendingUp,
   ShoppingCart,
+  LayoutTemplate,
+  Link2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -83,17 +85,39 @@ const LandingPage: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div className="space-y-4">
-                <Link to="/builder">
-                  <Button size="lg" className="h-16 px-10 text-xl rounded-2xl shadow-xl shadow-purple-200">
-                    Build My Website Free <ArrowRight className="ml-2 w-6 h-6" />
-                  </Button>
-                </Link>
-                <div className="flex flex-col items-center gap-2">
-                  <Link to="/builder?mode=import">
-                    <button className="text-purple-600 font-semibold hover:underline text-base">
-                      Have an existing website? We'll pull your info automatically →
-                    </button>
+              <div className="max-w-3xl mx-auto">
+                {/* Two-Tab Selector */}
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Tab 1: Build from Template */}
+                  <Link to="/builder" className="group">
+                    <div className="relative bg-white border-2 border-purple-200 hover:border-purple-500 rounded-3xl p-8 text-left transition-all hover:shadow-xl hover:shadow-purple-100 h-full">
+                      <div className="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center mb-5">
+                        <LayoutTemplate className="w-7 h-7 text-purple-600" />
+                      </div>
+                      <h3 className="text-xl font-bold text-zinc-900 mb-2">Build from Template</h3>
+                      <p className="text-zinc-500 text-sm leading-relaxed mb-6">
+                        Start fresh with our guided wizard. Choose your business type, pick a style, and answer a few simple questions — your website will be ready in minutes. No coding or design skills needed.
+                      </p>
+                      <div className="flex items-center text-purple-600 font-bold text-sm group-hover:gap-3 gap-2 transition-all">
+                        Get Started <ArrowRight className="w-4 h-4" />
+                      </div>
+                    </div>
+                  </Link>
+
+                  {/* Tab 2: Build from Existing Website */}
+                  <Link to="/builder?mode=import" className="group">
+                    <div className="relative bg-white border-2 border-purple-200 hover:border-purple-500 rounded-3xl p-8 text-left transition-all hover:shadow-xl hover:shadow-purple-100 h-full">
+                      <div className="w-14 h-14 bg-indigo-100 rounded-2xl flex items-center justify-center mb-5">
+                        <Link2 className="w-7 h-7 text-indigo-600" />
+                      </div>
+                      <h3 className="text-xl font-bold text-zinc-900 mb-2">Build from Existing Website</h3>
+                      <p className="text-zinc-500 text-sm leading-relaxed mb-6">
+                        Already have a website? Paste your URL and our AI will scan it — pulling your business name, services, photos, and contact info automatically. We'll rebuild it better, in minutes.
+                      </p>
+                      <div className="flex items-center text-indigo-600 font-bold text-sm group-hover:gap-3 gap-2 transition-all">
+                        Import My Site <ArrowRight className="w-4 h-4" />
+                      </div>
+                    </div>
                   </Link>
                 </div>
               </div>
