@@ -24,8 +24,9 @@ const SiteContact: React.FC = () => {
     e.preventDefault();
     
     if (!isConnected) {
-      alert('This is a preview. Connect Google Sheets in your dashboard to capture leads automatically.');
-      console.log('Lead data (not sent):', formData);
+      console.log('Lead data (Google Sheets not connected):', formData);
+      setSuccess(true);
+      setFormData({ name: '', email: '', phone: '', message: '', service: '' });
       return;
     }
 
