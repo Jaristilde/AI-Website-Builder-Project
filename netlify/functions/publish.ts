@@ -24,6 +24,7 @@ interface PublishRequestBody {
   businessData: Record<string, unknown>;
   slug: string;
   publishToken?: string;
+  userId?: string;
 }
 
 export default async function handler(req: Request, _context: Context): Promise<Response> {
@@ -59,7 +60,7 @@ export default async function handler(req: Request, _context: Context): Promise<
     );
   }
 
-  const { businessData, slug, publishToken } = body;
+  const { businessData, slug, publishToken, userId } = body;
 
   // Validate slug
   if (!slug || typeof slug !== 'string' || !isValidSlug(slug)) {
@@ -130,6 +131,7 @@ export default async function handler(req: Request, _context: Context): Promise<
       businessData,
       publishToken: newToken,
       ownerEmail: null,
+      userId: userId || null,
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
     });

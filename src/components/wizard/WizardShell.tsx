@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useBuilder } from '../../context/BuilderContext';
+import { useAuth } from '../../context/AuthContext';
+import { createWebsite } from '../../lib/website-service';
 import { Progress } from '../ui/progress';
 import { Button } from '../ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -27,11 +29,21 @@ interface WizardShellProps {
 
 const WizardShell: React.FC<WizardShellProps> = ({ autoShowImport = false }) => {
   const { state, dispatch } = useBuilder();
+  const { user } = useAuth();
   const { step } = state;
   const [direction, setDirection] = useState(1); // 1 for forward, -1 for back
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step < 6) {
+      // Auto-create website in Firestore on step 1→2 if not yet created
+      if (step === 1 && !state.activeWebsiteId && user) {
+        try {
+          const newId = await createWebsite(user.uid, state.data, (step + 1) as any);
+          dispatch({ type: 'SET_ACTIVE_WEBSITE_ID', payload: newId });
+        } catch (err) {
+          console.error('Failed to create website:', err);
+        }
+      }
       setDirection(1);
       dispatch({ type: 'SET_STEP', payload: (step + 1) as any });
     }

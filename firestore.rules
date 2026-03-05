@@ -1,0 +1,15 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // User-scoped websites: only the owner can read/write
+    match /users/{userId}/websites/{websiteId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Published sites: readable by anyone, writable only by server (admin SDK)
+    match /published_sites/{docId} {
+      allow read: if true;
+    }
+  }
+}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useBuilder } from '../../context/BuilderContext';
+import { useAuth } from '../../context/AuthContext';
 import { publishSite, checkSlugAvailability } from '../../lib/publish';
 import { generateSlug, isValidSlug } from '../../lib/subdomain';
 import { PublishState } from '../../types/builder';
@@ -17,28 +18,14 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
-const PUBLISH_STATE_KEY = 'publish_state';
-
-function loadPublishState(): PublishState {
-  try {
-    const saved = localStorage.getItem(PUBLISH_STATE_KEY);
-    if (saved) return JSON.parse(saved);
-  } catch {}
-  return { isPublished: false, slug: null, publishToken: null, url: null };
-}
-
-function savePublishState(state: PublishState) {
-  localStorage.setItem(PUBLISH_STATE_KEY, JSON.stringify(state));
-}
-
 export const PublishPanel: React.FC = () => {
-  const { state } = useBuilder();
+  const { state, dispatch } = useBuilder();
+  const { user } = useAuth();
   const businessData = state.data;
+  const publishState = state.publishState;
 
-  const [publishState, setPublishState] = useState<PublishState>(loadPublishState);
   const [slug, setSlug] = useState(() => {
-    const saved = loadPublishState();
-    return saved.slug || generateSlug(businessData.businessName || '');
+    return publishState.slug || generateSlug(businessData.businessName || '');
   });
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null);
   const [checkingSlug, setCheckingSlug] = useState(false);
@@ -95,7 +82,8 @@ export const PublishPanel: React.FC = () => {
     const result = await publishSite(
       businessData,
       slug,
-      publishState.publishToken || undefined
+      publishState.publishToken || undefined,
+      user?.uid
     );
 
     if (result.success) {
@@ -105,8 +93,7 @@ export const PublishPanel: React.FC = () => {
         publishToken: result.publishToken!,
         url: result.url!,
       };
-      setPublishState(newState);
-      savePublishState(newState);
+      dispatch({ type: 'SET_PUBLISH_STATE', payload: newState });
       setJustPublished(true);
       setTimeout(() => setJustPublished(false), 3000);
     } else {

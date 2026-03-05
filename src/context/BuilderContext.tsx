@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useReducer, useEffect, useMemo } from 'react';
-import { BusinessData, WizardStep, BusinessType, ServiceItem, BusinessFeatures, DesignStyle } from '../types/builder';
+import React, { createContext, useContext, useReducer, useEffect, useMemo, useRef, useCallback } from 'react';
+import { BusinessData, WizardStep, BusinessType, ServiceItem, BusinessFeatures, DesignStyle, PublishState } from '../types/builder';
 import { businessTemplates } from '../lib/templates';
+import { useAuth } from './AuthContext';
+import { saveWebsite, updatePublishState as updatePublishStateFirestore } from '../lib/website-service';
 
 // Shape that components expect when reading business data
 interface BusinessDataView {
@@ -22,6 +24,9 @@ interface BusinessDataView {
 interface BuilderState {
   step: WizardStep;
   data: BusinessData;
+  activeWebsiteId: string | null;
+  publishState: PublishState;
+  saving: boolean;
 }
 
 type BuilderAction =
@@ -33,6 +38,10 @@ type BuilderAction =
   | { type: 'UPDATE_DESIGN'; payload: { style: DesignStyle; color: string } }
   | { type: 'IMPORT_FROM_URL'; payload: Partial<BusinessData> }
   | { type: 'LOAD_PUBLISHED_SITE'; payload: BusinessData }
+  | { type: 'LOAD_WEBSITE'; payload: { data: BusinessData; step: WizardStep; websiteId: string; publishState: PublishState } }
+  | { type: 'SET_ACTIVE_WEBSITE_ID'; payload: string }
+  | { type: 'SET_PUBLISH_STATE'; payload: PublishState }
+  | { type: 'SET_SAVING'; payload: boolean }
   | { type: 'RESET' };
 
 const initialState: BuilderState = {
@@ -56,6 +65,9 @@ const initialState: BuilderState = {
     designStyle: 'modern',
     brandColor: '#7C3AED',
   },
+  activeWebsiteId: null,
+  publishState: { isPublished: false, slug: null, publishToken: null, url: null },
+  saving: false,
 };
 
 const BuilderContext = createContext<{
@@ -124,6 +136,20 @@ function builderReducer(state: BuilderState, action: BuilderAction): BuilderStat
         step: 6 as WizardStep,
         data: action.payload,
       };
+    case 'LOAD_WEBSITE':
+      return {
+        ...state,
+        step: action.payload.step,
+        data: action.payload.data,
+        activeWebsiteId: action.payload.websiteId,
+        publishState: action.payload.publishState,
+      };
+    case 'SET_ACTIVE_WEBSITE_ID':
+      return { ...state, activeWebsiteId: action.payload };
+    case 'SET_PUBLISH_STATE':
+      return { ...state, publishState: action.payload };
+    case 'SET_SAVING':
+      return { ...state, saving: action.payload };
     case 'RESET':
       return initialState;
     default:
@@ -132,19 +158,76 @@ function builderReducer(state: BuilderState, action: BuilderAction): BuilderStat
 }
 
 export const BuilderProvider: React.FC<{ children: React.ReactNode; readOnly?: boolean }> = ({ children, readOnly = false }) => {
-  const [state, dispatch] = useReducer(builderReducer, initialState, (initial) => {
-    if (readOnly) return initial;
-    const saved = localStorage.getItem('builder_state');
-    return saved ? JSON.parse(saved) : initial;
-  });
+  const [state, dispatch] = useReducer(builderReducer, initialState);
+  const { user } = useAuth();
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevStateRef = useRef<{ data: BusinessData; step: WizardStep } | null>(null);
+  const prevUserUidRef = useRef<string | null>(null);
 
+  // Reset state when user changes (logout or switch account)
   useEffect(() => {
-    if (!readOnly) {
-      localStorage.setItem('builder_state', JSON.stringify(state));
+    const currentUid = user?.uid ?? null;
+    if (prevUserUidRef.current !== null && prevUserUidRef.current !== currentUid) {
+      dispatch({ type: 'RESET' });
+      prevStateRef.current = null;
     }
-    // Update brand color CSS variable
+    prevUserUidRef.current = currentUid;
+  }, [user?.uid]);
+
+  // Debounced Firestore save
+  const debouncedSave = useCallback(() => {
+    if (readOnly || !user || !state.activeWebsiteId) return;
+
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+
+    saveTimerRef.current = setTimeout(async () => {
+      dispatch({ type: 'SET_SAVING', payload: true });
+      try {
+        await saveWebsite(user.uid, state.activeWebsiteId!, state.data, state.step);
+      } catch (err) {
+        console.error('Failed to save website:', err);
+      }
+      dispatch({ type: 'SET_SAVING', payload: false });
+    }, 1500);
+  }, [readOnly, user, state.activeWebsiteId, state.data, state.step]);
+
+  // Trigger save when data or step changes (only if we have an active website)
+  useEffect(() => {
+    if (readOnly || !user || !state.activeWebsiteId) return;
+
+    // Skip the initial render / load
+    const current = { data: state.data, step: state.step };
+    if (prevStateRef.current === null) {
+      prevStateRef.current = current;
+      return;
+    }
+
+    // Only save if something actually changed
+    if (
+      JSON.stringify(prevStateRef.current.data) !== JSON.stringify(current.data) ||
+      prevStateRef.current.step !== current.step
+    ) {
+      prevStateRef.current = current;
+      debouncedSave();
+    }
+
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, [state.data, state.step, debouncedSave, readOnly, user, state.activeWebsiteId]);
+
+  // Save publish state to Firestore when it changes
+  useEffect(() => {
+    if (readOnly || !user || !state.activeWebsiteId || !state.publishState.isPublished) return;
+    updatePublishStateFirestore(user.uid, state.activeWebsiteId, state.publishState).catch((err) =>
+      console.error('Failed to save publish state:', err)
+    );
+  }, [state.publishState, readOnly, user, state.activeWebsiteId]);
+
+  // Update brand color CSS variable
+  useEffect(() => {
     document.documentElement.style.setProperty('--brand-color', state.data.brandColor);
-  }, [state, readOnly]);
+  }, [state.data.brandColor]);
 
   // Derive businessData view that components expect (with .name instead of .businessName)
   const businessData = useMemo<BusinessDataView | null>(() => {

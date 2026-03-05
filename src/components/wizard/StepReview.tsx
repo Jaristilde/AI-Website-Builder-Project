@@ -42,7 +42,7 @@ const StepReview: React.FC = () => {
       setBuildStep(i);
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
-    navigate('/preview');
+    navigate('/dashboard');
   };
 
   const BusinessIcon = iconMap[state.data.businessType] || LayoutGrid;

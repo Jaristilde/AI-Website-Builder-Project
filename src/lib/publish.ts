@@ -17,13 +17,14 @@ export interface SlugCheckResult {
 export async function publishSite(
   businessData: BusinessData,
   slug: string,
-  publishToken?: string
+  publishToken?: string,
+  userId?: string
 ): Promise<PublishResult> {
   try {
     const response = await fetch('/.netlify/functions/publish', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ businessData, slug, publishToken }),
+      body: JSON.stringify({ businessData, slug, publishToken, userId }),
     });
     return await response.json();
   } catch (error) {

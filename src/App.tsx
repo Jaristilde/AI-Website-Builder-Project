@@ -15,6 +15,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/builder" element={<WizardPage />} />
+      <Route path="/builder/:websiteId" element={<WizardPage />} />
       <Route path="/preview" element={<ProtectedRoute><PreviewPage /></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/pricing" element={<PricingPage />} />

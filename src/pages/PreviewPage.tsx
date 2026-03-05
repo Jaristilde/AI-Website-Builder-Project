@@ -7,12 +7,9 @@ import {
   Smartphone,
   ArrowLeft,
   LayoutDashboard,
-  ExternalLink,
-  Edit3,
   Rocket,
   Globe,
 } from 'lucide-react';
-import { PublishState } from '../types/builder';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { motion } from 'motion/react';
@@ -39,7 +36,7 @@ const PreviewPage: React.FC = () => {
 
   useEffect(() => {
     if (!businessData) {
-      navigate('/builder');
+      navigate('/dashboard');
     }
   }, [businessData, navigate]);
 
@@ -103,22 +100,13 @@ const PreviewPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          {(() => {
-            try {
-              const saved = localStorage.getItem('publish_state');
-              const ps: PublishState | null = saved ? JSON.parse(saved) : null;
-              if (ps?.isPublished && ps.url) {
-                return (
-                  <a href={ps.url} target="_blank" rel="noopener noreferrer">
-                    <Button variant="outline" size="sm" className="gap-2">
-                      <Globe className="w-4 h-4" /> View Live
-                    </Button>
-                  </a>
-                );
-              }
-            } catch {}
-            return null;
-          })()}
+          {state.publishState.isPublished && state.publishState.url && (
+            <a href={state.publishState.url} target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" size="sm" className="gap-2">
+                <Globe className="w-4 h-4" /> View Live
+              </Button>
+            </a>
+          )}
           <Button
             size="sm"
             onClick={() => navigate('/dashboard?tab=publish')}
