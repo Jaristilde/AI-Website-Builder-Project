@@ -1,17 +1,19 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Users, 
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import {
+  LayoutDashboard,
+  Users,
   Calendar,
   UserCircle,
-  Settings, 
-  ChevronRight, 
+  Settings,
+  ChevronRight,
   ExternalLink,
   Edit3,
-  Globe
+  Globe,
+  LogOut
 } from 'lucide-react';
 import { DashboardTab } from '../../types/crm';
+import { useAuth } from '../../context/AuthContext';
 
 interface DashboardSidebarProps {
   activeTab: DashboardTab;
@@ -19,6 +21,13 @@ interface DashboardSidebarProps {
 }
 
 export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ activeTab, onTabChange }) => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
   const menuItems: { id: DashboardTab; label: string; icon: any }[] = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'leads', label: 'Leads', icon: Users },
@@ -71,7 +80,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ activeTab, o
             </span>
             <ChevronRight className="w-4 h-4 text-zinc-300" />
           </Link>
-          <Link 
+          <Link
             to="/preview"
             className="flex items-center justify-between w-full px-4 py-3 bg-zinc-50 hover:bg-zinc-100 rounded-xl text-sm font-bold text-zinc-700 transition-colors"
           >
@@ -81,6 +90,15 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ activeTab, o
             </span>
             <ExternalLink className="w-4 h-4 text-zinc-300" />
           </Link>
+          <button
+            onClick={handleLogout}
+            className="flex items-center justify-between w-full px-4 py-3 hover:bg-red-50 rounded-xl text-sm font-bold text-red-600 transition-colors"
+          >
+            <span className="flex items-center gap-2">
+              <LogOut className="w-4 h-4" />
+              Log Out
+            </span>
+          </button>
         </div>
       </aside>
 

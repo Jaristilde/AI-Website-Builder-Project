@@ -366,10 +366,20 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 border-t border-zinc-100 text-center">
-        <p className="text-zinc-400 text-sm">
-          © 2026 my1stwebsite. Built for small businesses.
-        </p>
+      <footer className="py-12 border-t border-zinc-100">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-zinc-400 text-sm">
+            © 2026 my1stwebsite. Built for small businesses.
+          </p>
+          <div className="flex items-center gap-6">
+            <Link to="/terms" className="text-zinc-400 hover:text-zinc-600 text-sm font-medium transition-colors">
+              Terms of Service
+            </Link>
+            <Link to="/privacy" className="text-zinc-400 hover:text-zinc-600 text-sm font-medium transition-colors">
+              Privacy Policy
+            </Link>
+          </div>
+        </div>
       </footer>
     </div>
   );

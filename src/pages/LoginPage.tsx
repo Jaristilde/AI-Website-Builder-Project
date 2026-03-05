@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from '../components/Header';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -17,16 +17,21 @@ const LoginPage: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   // Redirect if already logged in
-  if (user) {
-    navigate('/dashboard');
-    return null;
-  }
+  useEffect(() => {
+    if (user) navigate('/dashboard');
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (isSignUp && !agreedToTerms) {
+      setError('You must agree to the Terms of Service and Privacy Policy.');
+      return;
+    }
 
     if (isSignUp && password !== confirmPassword) {
       setError('Passwords do not match.');
@@ -110,6 +115,28 @@ const LoginPage: React.FC = () => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
+            )}
+
+            {isSignUp && (
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  id="terms"
+                  checked={agreedToTerms}
+                  onChange={(e) => setAgreedToTerms(e.target.checked)}
+                  className="mt-1 rounded border-zinc-300 text-purple-600 focus:ring-purple-500"
+                />
+                <label htmlFor="terms" className="text-sm text-zinc-600 leading-relaxed cursor-pointer">
+                  I agree to the{' '}
+                  <Link to="/terms" className="text-purple-600 font-bold hover:underline" target="_blank">
+                    Terms of Service
+                  </Link>{' '}
+                  and{' '}
+                  <Link to="/privacy" className="text-purple-600 font-bold hover:underline" target="_blank">
+                    Privacy Policy
+                  </Link>
+                </label>
+              </div>
             )}
 
             {!isSignUp && (

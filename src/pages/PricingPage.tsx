@@ -132,6 +132,36 @@ const PricingPage: React.FC = () => {
             </div>
           ))}
         </div>
+
+        {/* Cancellation & Refund Info */}
+        <div className="max-w-3xl mx-auto mt-24">
+          <h2 className="text-3xl font-bold text-zinc-900 text-center mb-12">Frequently Asked Questions</h2>
+          <div className="space-y-6">
+            {[
+              {
+                q: 'Can I cancel my subscription anytime?',
+                a: 'Yes. You can cancel your subscription at any time from your account settings. Your plan will remain active until the end of your current billing period — no penalties, no hassle.',
+              },
+              {
+                q: 'Are there any long-term contracts?',
+                a: 'No. All plans are billed month-to-month with no long-term commitments. You only pay for what you use.',
+              },
+              {
+                q: 'What is your refund policy?',
+                a: 'We do not offer prorated refunds for partial months. However, since you can cancel anytime and your plan stays active through the end of the billing period, you always get what you paid for. If you experience a billing issue, contact us and we\'ll work with you.',
+              },
+              {
+                q: 'How do I downgrade my plan?',
+                a: 'You can downgrade your plan at any time from your account settings. The downgrade takes effect at the start of your next billing cycle. If the lower plan has fewer website slots, you\'ll need to unpublish extra sites before the downgrade applies.',
+              },
+            ].map((faq, i) => (
+              <div key={i} className="bg-white p-8 rounded-3xl border border-zinc-100">
+                <h3 className="text-lg font-bold text-zinc-900 mb-3">{faq.q}</h3>
+                <p className="text-zinc-600 leading-relaxed">{faq.a}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </main>
     </div>
   );
