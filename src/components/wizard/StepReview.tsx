@@ -37,42 +37,45 @@ const StepReview: React.FC = () => {
     "Setting up your homepage...",
     "Adding your services...",
     "Applying your brand colors...",
-    "Publishing your website...",
-    "Your site is live! 🎉"
+    "Making it beautiful...",
+    "Your site is ready! 🎉"
   ];
 
   const handleGenerate = async () => {
     setIsGenerating(true);
 
-    // Steps 0-2: visual progress
-    for (let i = 0; i < 3; i++) {
+    // Steps 0-3: visual progress
+    for (let i = 0; i < 4; i++) {
       setBuildStep(i);
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
-    // Step 3: auto-publish
-    setBuildStep(3);
+    // Try auto-publish silently — don't block the flow if it fails
     if (!state.publishState.isPublished) {
-      const slug = generateSlug(state.data.businessName || 'my-website');
-      const result = await publishSite(
-        state.data,
-        slug,
-        state.publishState.publishToken || undefined,
-        user?.uid
-      );
+      try {
+        const slug = generateSlug(state.data.businessName || 'my-website');
+        const result = await publishSite(
+          state.data,
+          slug,
+          state.publishState.publishToken || undefined,
+          user?.uid
+        );
 
-      if (result.success) {
-        const newState: PublishState = {
-          isPublished: true,
-          slug: result.slug!,
-          publishToken: result.publishToken!,
-          url: result.url!,
-        };
-        dispatch({ type: 'SET_PUBLISH_STATE', payload: newState });
+        if (result.success) {
+          const newState: PublishState = {
+            isPublished: true,
+            slug: result.slug!,
+            publishToken: result.publishToken!,
+            url: result.url!,
+          };
+          dispatch({ type: 'SET_PUBLISH_STATE', payload: newState });
+        }
+      } catch {
+        // Publish failed silently — user can publish later from dashboard
       }
     }
 
-    // Step 4: done
+    // Done
     setBuildStep(4);
     await new Promise(resolve => setTimeout(resolve, 1000));
     navigate('/dashboard');
