@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useBuilder } from '../../context/BuilderContext';
+import { useAuth } from '../../context/AuthContext';
+import { createWebsite } from '../../lib/website-service';
 import { Card } from '../ui/card';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
@@ -55,6 +57,7 @@ interface StepBusinessTypeProps {
 
 const StepBusinessType: React.FC<StepBusinessTypeProps> = ({ autoShowImport = false }) => {
   const { state, dispatch } = useBuilder();
+  const { user } = useAuth();
   const [customType, setCustomType] = useState(state.data.customType || '');
   const [showImport, setShowImport] = useState(autoShowImport);
   const [url, setUrl] = useState('');
@@ -69,7 +72,7 @@ const StepBusinessType: React.FC<StepBusinessTypeProps> = ({ autoShowImport = fa
     'Almost done...',
   ];
 
-  const handleSelect = (type: BusinessType) => {
+  const handleSelect = async (type: BusinessType) => {
     if (showImport) {
       setShowImport(false);
       setUrl('');
@@ -78,6 +81,15 @@ const StepBusinessType: React.FC<StepBusinessTypeProps> = ({ autoShowImport = fa
     }
     dispatch({ type: 'SET_BUSINESS_TYPE', payload: { type, customType: type === 'other' ? customType : undefined } });
     if (type !== 'other') {
+      // Create website in Firestore
+      if (user && !state.activeWebsiteId) {
+        try {
+          const newId = await createWebsite(user.uid, { ...state.data, businessType: type }, 2);
+          dispatch({ type: 'SET_ACTIVE_WEBSITE_ID', payload: newId });
+        } catch (err) {
+          console.error('Failed to create website:', err);
+        }
+      }
       dispatch({ type: 'SET_STEP', payload: 2 });
     }
   };
@@ -134,9 +146,19 @@ const StepBusinessType: React.FC<StepBusinessTypeProps> = ({ autoShowImport = fa
     }
   };
 
-  const handleUseData = () => {
+  const handleUseData = async () => {
     if (result) {
       dispatch({ type: 'IMPORT_FROM_URL', payload: result });
+      // Create website in Firestore so it persists to the dashboard
+      if (user && !state.activeWebsiteId) {
+        try {
+          const mergedData = { ...state.data, ...result };
+          const newId = await createWebsite(user.uid, mergedData as BusinessData, 2);
+          dispatch({ type: 'SET_ACTIVE_WEBSITE_ID', payload: newId });
+        } catch (err) {
+          console.error('Failed to create website:', err);
+        }
+      }
       dispatch({ type: 'SET_STEP', payload: 2 });
     }
   };
