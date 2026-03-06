@@ -9,7 +9,14 @@ function getDb() {
   if (getApps().length === 0) {
     const key = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
     if (!key) throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY is not set');
-    initializeApp({ credential: cert(JSON.parse(key)) });
+    try {
+      const parsed = JSON.parse(key);
+      if (!parsed.project_id) throw new Error('Missing project_id in service account key');
+      initializeApp({ credential: cert(parsed) });
+    } catch (e) {
+      console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY:', e);
+      throw e;
+    }
   }
   return getFirestore();
 }

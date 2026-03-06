@@ -6,6 +6,7 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
+  deleteField,
   query,
   orderBy,
   serverTimestamp,
@@ -13,6 +14,20 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { BusinessData, WizardStep, PublishState } from '../types/builder';
+
+// Firestore rejects undefined values — strip them out
+function cleanData(obj: Record<string, unknown>): Record<string, unknown> {
+  const cleaned: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value === undefined) continue;
+    if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+      cleaned[key] = cleanData(value as Record<string, unknown>);
+    } else {
+      cleaned[key] = value;
+    }
+  }
+  return cleaned;
+}
 
 export interface WebsiteDocument {
   businessData: BusinessData;
@@ -59,7 +74,7 @@ export async function createWebsite(
   step: WizardStep
 ): Promise<string> {
   const docRef = await addDoc(websitesCol(userId), {
-    businessData,
+    businessData: cleanData(businessData as unknown as Record<string, unknown>),
     name: businessData.businessName || 'Untitled Website',
     wizardStep: step,
     publishState: { isPublished: false, slug: null, publishToken: null, url: null },
@@ -76,7 +91,7 @@ export async function saveWebsite(
   step: WizardStep
 ): Promise<void> {
   await updateDoc(websiteDoc(userId, websiteId), {
-    businessData,
+    businessData: cleanData(businessData as unknown as Record<string, unknown>),
     name: businessData.businessName || 'Untitled Website',
     wizardStep: step,
     updatedAt: serverTimestamp(),
