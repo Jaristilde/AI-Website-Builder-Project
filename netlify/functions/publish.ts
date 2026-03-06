@@ -4,14 +4,16 @@ import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { getCorsHeaders, handleCorsPreflight } from './_shared/cors';
 import { randomBytes } from 'crypto';
 
-// Initialize Firebase Admin (singleton)
-if (getApps().length === 0) {
-  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY || '{}');
-  initializeApp({ credential: cert(serviceAccount) });
-}
-
-const db = getFirestore();
 const SITES_COLLECTION = 'published_sites';
+
+function getDb() {
+  if (getApps().length === 0) {
+    const key = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+    if (!key) throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY is not set');
+    initializeApp({ credential: cert(JSON.parse(key)) });
+  }
+  return getFirestore();
+}
 
 const SLUG_REGEX = /^[a-z0-9][a-z0-9-]{0,48}[a-z0-9]$/;
 const SHORT_SLUG_REGEX = /^[a-z0-9]{1,2}$/;
@@ -38,15 +40,6 @@ export default async function handler(req: Request, _context: Context): Promise<
     return Response.json(
       { success: false, error: 'Method not allowed' },
       { status: 405, headers: corsHeaders }
-    );
-  }
-
-  // Validate Firebase config
-  if (!process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
-    console.error('FIREBASE_SERVICE_ACCOUNT_KEY is not set');
-    return Response.json(
-      { success: false, error: 'Publishing service is not configured' },
-      { status: 500, headers: corsHeaders }
     );
   }
 
@@ -79,6 +72,7 @@ export default async function handler(req: Request, _context: Context): Promise<
   }
 
   try {
+    const db = getDb();
     const sitesRef = db.collection(SITES_COLLECTION);
 
     // UPDATE existing site

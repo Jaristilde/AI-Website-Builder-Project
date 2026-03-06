@@ -3,14 +3,16 @@ import { initializeApp, cert, getApps } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getCorsHeaders, handleCorsPreflight } from './_shared/cors';
 
-// Initialize Firebase Admin (singleton)
-if (getApps().length === 0) {
-  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY || '{}');
-  initializeApp({ credential: cert(serviceAccount) });
-}
-
-const db = getFirestore();
 const SITES_COLLECTION = 'published_sites';
+
+function getDb() {
+  if (getApps().length === 0) {
+    const key = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+    if (!key) throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY is not set');
+    initializeApp({ credential: cert(JSON.parse(key)) });
+  }
+  return getFirestore();
+}
 
 export default async function handler(req: Request, _context: Context): Promise<Response> {
   const origin = req.headers.get('origin');
@@ -37,6 +39,7 @@ export default async function handler(req: Request, _context: Context): Promise<
   }
 
   try {
+    const db = getDb();
     const snapshot = await db
       .collection(SITES_COLLECTION)
       .where('slug', '==', slug.toLowerCase())
