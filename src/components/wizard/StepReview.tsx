@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { useBuilder } from '../../context/BuilderContext';
+import { useAuth } from '../../context/AuthContext';
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { useNavigate } from 'react-router-dom';
-import { 
+import { publishSite } from '../../lib/publish';
+import { generateSlug } from '../../lib/subdomain';
+import { PublishState } from '../../types/builder';
+import {
   Scissors, Sparkles, Utensils, Brain, ShoppingBag, Wrench, BookOpen, Church, LayoutGrid,
   MapPin, Phone, Mail, Loader2, CheckCircle2
 } from 'lucide-react';
@@ -24,6 +28,7 @@ const iconMap: Record<string, any> = {
 
 const StepReview: React.FC = () => {
   const { state, dispatch } = useBuilder();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [isGenerating, setIsGenerating] = useState(false);
   const [buildStep, setBuildStep] = useState(0);
@@ -32,16 +37,44 @@ const StepReview: React.FC = () => {
     "Setting up your homepage...",
     "Adding your services...",
     "Applying your brand colors...",
-    "Making it beautiful...",
-    "Your site is ready! 🎉"
+    "Publishing your website...",
+    "Your site is live! 🎉"
   ];
 
   const handleGenerate = async () => {
     setIsGenerating(true);
-    for (let i = 0; i < buildMessages.length; i++) {
+
+    // Steps 0-2: visual progress
+    for (let i = 0; i < 3; i++) {
       setBuildStep(i);
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
+
+    // Step 3: auto-publish
+    setBuildStep(3);
+    if (!state.publishState.isPublished) {
+      const slug = generateSlug(state.data.businessName || 'my-website');
+      const result = await publishSite(
+        state.data,
+        slug,
+        state.publishState.publishToken || undefined,
+        user?.uid
+      );
+
+      if (result.success) {
+        const newState: PublishState = {
+          isPublished: true,
+          slug: result.slug!,
+          publishToken: result.publishToken!,
+          url: result.url!,
+        };
+        dispatch({ type: 'SET_PUBLISH_STATE', payload: newState });
+      }
+    }
+
+    // Step 4: done
+    setBuildStep(4);
+    await new Promise(resolve => setTimeout(resolve, 1000));
     navigate('/dashboard');
   };
 
